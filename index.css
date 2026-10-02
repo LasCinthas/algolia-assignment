@@ -739,6 +739,14 @@ body {
   -webkit-box-orient: vertical;
 }
 
+.result__title mark,
+.result__summary mark {
+  padding: 0 2px;
+  border-radius: 3px;
+  background: var(--brand-soft);
+  color: var(--brand-dark);
+}
+
 .result__rating {
   display: flex;
   align-items: baseline;

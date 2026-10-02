@@ -66,13 +66,15 @@
             <img class="result__image" src="{{image_url}}" alt="{{name}}" />
       		</div>
       		<div class="result__text-container">
-      			<h2 class="result__title">{{name}}</h2>
+      			<h2 class="result__title">{{#helpers.highlight}}{ "attribute": "name" }{{/helpers.highlight}}</h2>
             <p class="result__rating">
               <span>{{ratingStars}}</span>
               <span class="result__reviews"> · ({{reviews_count}} reviews)</span>
             </p>
       			<p class="result__summary">
-              {{priceSymbols}} | {{food_type}} | {{neighborhood}}
+              {{priceSymbols}} |
+              {{#helpers.highlight}}{ "attribute": "food_type" }{{/helpers.highlight}} |
+              {{#helpers.highlight}}{ "attribute": "neighborhood" }{{/helpers.highlight}}
             </p>
       		</div>
       	</div>
