@@ -42,7 +42,8 @@ const byPopularity = (a, b) =>
 // initialize the instantsearch instance
 const search = instantsearch({
   indexName,
-  searchClient
+  searchClient,
+  insights: true,
 });
 
 // add widgets to the instantsearch instance
