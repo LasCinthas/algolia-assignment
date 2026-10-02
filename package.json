@@ -1,0 +1,41 @@
+{
+  "name": "se-assignment",
+  "version": "1.0.0",
+  "description": "Example template for Algolia JavaScript helper",
+  "keywords": [],
+  "private": true,
+  "dependencies": {
+    "algoliasearch": "^5.59.0",
+    "algoliasearch-helper": "3.15.0",
+    "csv-parse": "^7.0.3",
+    "dotenv": "^18.0.5",
+    "instantsearch.js": "^4.118.1"
+  },
+  "devDependencies": {
+    "@types/algoliasearch": "3.30.1",
+    "assert": "^2.1.0",
+    "browserify-zlib": "^0.2.0",
+    "buffer": "^6.0.3",
+    "events": "^3.3.0",
+    "https-browserify": "^1.0.0",
+    "parcel": "^2.16.4",
+    "process": "^0.11.10",
+    "stream-browserify": "^3.0.0",
+    "stream-http": "^3.2.0",
+    "url": "^0.11.4",
+    "util": "^0.12.5"
+  },
+  "targets": {
+    "default": {
+      "context": "browser",
+      "includeNodeModules": true
+    }
+  },
+  "scripts": {
+    "start": "parcel index.html",
+    "build": "parcel build index.html"
+  },
+  "engines": {
+    "node": "^24.21.0"
+  }
+}
