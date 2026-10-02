@@ -16,7 +16,7 @@ All Algolia settings have been changed directly on the dashboard for easy and qu
 
 The project extends the existing starting project and adds new things on top of it. Sometimes, changes have been made to support small improvements or resolve technical issues.
 
-Two scripts have been created. One to perform a check of the essentials prerequisites that the datasets should have and another one to merge the datasets and upload the records to the index.
+Two scripts have been created (located in the scripts folder). One to perform a check of the essentials prerequisites that the datasets should have and another one to merge the datasets based on the ObjectId, select some attributes from the two sets and upload the records to the index.
 These scripts could be extended, especially the one that performs the check, with additional data integrity analysis, numeric values bounds analysis, data format verifications etc. As of now, the assumption is that the data respects all these conditions, including the fact that the dataset doesn't contain the same restaurant in two different objectIDs.
 
 A js file has been added for purely cosmetic purposes. This file provides a typing animatino to the searchbox when used by the index. Since this was not related to the actual logic, I decided to put it in a separate file and keep the index as clean and utilitarian as possible.
@@ -51,4 +51,12 @@ During the first iteration, the address was included in the index and enabled as
 When querying for things like "Indian" which is also a type of cuisine, the results that had the word in the name were not ranked first. Instead, the ranking was happening on the cuisine type. This is happening because this is gelocation based search and the position of the restaurant has a higher importance in this case since the likehood that the user will actually book a restaurant that is nearby is higher. This could be further analyzed with the data from the insights and tweaked as needed.
 
 Food type has been selected as the searchable facets while price range and star counts have been disabled. Users are more likely going to use the filters for these two. Dining type hasn't been selected simply because the hit card in this POC is not showing the attribute and there would be no highlighting, creating some confusion. Instead, the users can use the filter. If this attribute is added to the hit card, then it would be meaningful to make it become a searchable attribute.
+
+One very interesting optimization is about the natural language that the users might use. By default a query like "Italian in New York" or "Italian near New York" that are very natural to write were not returning any result. To make this work, a rule has been added in the index that when it detects the keywords "in" or "near" it eliminates them from the query. This way, the query matches Italian on the searchable attribute of the cuisine type and New York in the city and makes the query work with natual language. This set of rules could be extended in the future based on the actual user queries and most common keywords.
+
+Another consideration has been made regarding typos. Queries like "ner york" did not return any data. To improve this, the minimum amount of characters to accept one typo has been set to 3. Further tweaks could be made, including creating a list of synonims to update overtime based on the analytics data.
+
+The ranking is working using the default raking criteria with the addition of star_count and reviews_count. At the moment there is no strong evidence that this is having a meaningful impact due to the much higher importance of the geolocation criteria. If the geolocalization doesn't work, then the other criterias have a greater and more noticeable impact.
+
+The name has been placed as the last searchable attribute in order to give priority to users looking for a cuisine type in a location while allowing to match the name for those that already know what they are looking for. The impact of the relevancy of this configuration should be futher analyzed using an extensive matrix of queries, which is not included as part of this POC.
 
