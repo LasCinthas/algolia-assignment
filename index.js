@@ -63,10 +63,13 @@ search.addWidgets([
         transformItems: (items) =>
             items.map((item) => {
                 const stars = Math.round(Number(item.stars_count));
+                const city = String(item.city ?? "").trim();
+                const neighborhood = String(item.neighborhood ?? "").trim();
                 return {
                     ...item,
                     ratingStars: "★".repeat(stars) + "☆".repeat(5 - stars),
                     priceSymbols: priceSymbols[item.price_range] ?? item.price_range,
+                    showCity: city && !neighborhood.toLowerCase().includes(city.toLowerCase()),
                 };
             }),
     }),
