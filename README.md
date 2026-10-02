@@ -36,3 +36,14 @@ As part of the hits, the decision was about using an infinite scroll with a butt
 For the filters, in addition to the cuisine type that is one of the most obvious ways the user might want to filter the results, price, rating and dining style have been added as well. Price is an important factor, and this is why it's the second to be showed and it keeps the same values present in the dataset, since they are consistent. In the hit cards, the price is also always shown, with a shorter symbolic visualization. The rating is the third provided filtering, which might be useful for users when they want to find a restaurant and make sure that is approved by other users. Finally, the dining style with all his options is shown at the end, to make sure that the user can combine all the other filtering conditions to find the dining experience he's really looking for. This combination will grant the possibility to the users that already know what they are looking for a quick way to put in place a proper filtering strategy instead of scrolling the results for a long time.
 
 Phone numbers, precise addresses, payment options, reserve url and postal codes have been omitted for now from the index. These might be useful later when the restaurant details are implemented, but are not considered essential search conditions for this POC implementation.
+
+## Key Algolia settings decisions ##
+
+As part of this document and POC, I am not adding screenshots of the tests (including A/B testing) that have been performed, but the decisions and examples are reported in the following text.
+
+During the first iteration, the address was included in the index and enabled as a searchable attribute. This created some issues in queries like "New York" where the match was done with the address, that included this work combination. I preferred to remove the address for this reason and get more relevant results.
+
+When querying for things like "Indian" which is also a type of cuisine, the results that had the word in the name were not ranked first. Instead, the ranking was happening on the cuisine type. This is happening because this is gelocation based search and the position of the restaurant has a higher importance in this case since the likehood that the user will actually book a restaurant that is nearby is higher. This could be further analyzed with the data from the insights and tweaked as needed.
+
+Food type has been selected as the searchable facets while price range and star counts have been disabled. Users are more likely going to use the filters for these two. Dining type hasn't been selected simply because the hit card in this POC is not showing the attribute and there would be no highlighting, creating some confusion. Instead, the users can use the filter. If this attribute is added to the hit card, then it would be meaningful to make it become a searchable attribute.
+
