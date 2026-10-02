@@ -40,7 +40,6 @@ const records = restaurants.map((restaurant) => {
   return {
     objectID,
     name: restaurant.name,
-    address: restaurant.address,
     city: restaurant.city,
     // images url seem to be broken in the dataset at the moment. Keeping it for future use
     image_url: restaurant.image_url,
@@ -51,7 +50,6 @@ const records = restaurants.map((restaurant) => {
     stars_count: Number(detail.stars_count),
     reviews_count: Number(detail.reviews_count),
     dining_style: detail.dining_style,
-    payment_options: restaurant.payment_options,
   };
 });
 
