@@ -42,9 +42,9 @@ For the filters, in addition to the cuisine type that is one of the most obvious
 
 Phone numbers, precise addresses, payment options, reserve url and postal codes have been omitted for now from the index. These might be useful later when the restaurant details are implemented, but are not considered essential search conditions for this POC implementation.
 
-## Key Algolia settings decisions ##
+## Some insights about the Algolia settings decisions ##
 
-As part of this document and POC, I am not adding screenshots of the tests (including A/B testing) that have been performed, but the decisions and examples are reported in the following text.
+As part of this document and POC, I am not adding screenshots of the tests (including A/B testing) that have been performed, but the decisions and examples are reported in the following points.
 
 During the first iteration, the address was included in the index and enabled as a searchable attribute. This created some issues in queries like "New York" where the match was done with the address, that included this work combination. I preferred to remove the address for this reason and get more relevant results.
 
@@ -60,3 +60,6 @@ The ranking is working using the default raking criteria with the addition of st
 
 The name has been placed as the last searchable attribute in order to give priority to users looking for a cuisine type in a location while allowing to match the name for those that already know what they are looking for. The impact of the relevancy of this configuration should be futher analyzed using an extensive matrix of queries, which is not included as part of this POC.
 
+Queries where the users select all their critierias using the filters and only type the location have been tested and are a powerful and quick way of browsing restaurants when the user doesn't know the name. Given all the previous points, this kind of search operations behaved as expected immediately.
+
+Overall, the geolocation is the most important factor for ranking results and after some considerations, it's meaningful for a restaurant search platform.
