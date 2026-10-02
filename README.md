@@ -7,6 +7,11 @@ A live demo is available at https://algolia-assignment-em.netlify.app/
 Status:
 [![Netlify Status](https://api.netlify.com/api/v1/badges/c97171d9-ec9d-4816-9e27-36e81a27c84f/deploy-status)](https://app.netlify.com/projects/algolia-assignment-em/deploys)
 
+The access to the dashboard has been provided to Algolia employees.
+
+Algolia Application ID: HEXO1NDC48, 
+Index name: restaurants
+
 All Algolia settings have been changed directly on the dashboard for easy and quick experimentation, rather than on the code. As part of this POC, I am not following the principles of configuration as code.
 
 The project extends the existing starting project and adds new things on top of it. Sometimes, changes have been made to support small improvements or resolve technical issues.
