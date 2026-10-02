@@ -2,7 +2,10 @@
 
 This POC has a very close look and feeling to the original mock-up. This is intended, as I wanted to provide an enhanced experience rather than a complete revolution and make users feel comfortable and familiar immediately. The functionalities that have been implemented are meant to showcase Algolia core capabilities. Other modifications could be added gradually.
 
-A live demo is available at URL_HERE
+A live demo is available at https://algolia-assignment-em.netlify.app/
+
+Status:
+[![Netlify Status](https://api.netlify.com/api/v1/badges/c97171d9-ec9d-4816-9e27-36e81a27c84f/deploy-status)](https://app.netlify.com/projects/algolia-assignment-em/deploys)
 
 All Algolia settings have been changed directly on the dashboard for easy and quick experimentation, rather than on the code. As part of this POC, I am not following the principles of configuration as code.
 
