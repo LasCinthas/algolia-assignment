@@ -63,3 +63,5 @@ The name has been placed as the last searchable attribute in order to give prior
 Queries where the users select all their critierias using the filters and only type the location have been tested and are a powerful and quick way of browsing restaurants when the user doesn't know the name. Given all the previous points, this kind of search operations behaved as expected immediately.
 
 Overall, the geolocation is the most important factor for ranking results and after some considerations, it's meaningful for a restaurant search platform.
+
+The typo tolerance is greately increased. Queries like "rom risorante" correctly returns records like "Roma Ristorante" and "A'Roma Ristorante". Even if the query doesn't have the words in order, the matching works on the location and other criterias, giving the possibility to find what they were looking for. The card also shows all the most important info, including the nighborood, which makes easy identify which restaurant it is. The full address could be displayed after clicking a record, but it's not part of this POC.
