@@ -56,10 +56,25 @@ Another consideration has been made regarding typos. Queries like "ner york" did
 
 The ranking is working using the default raking criteria with the addition of star_count and reviews_count. At the moment there is no strong evidence that this is having a meaningful impact due to the much higher importance of the geolocation criteria. If the geolocalization doesn't work, then the other criterias have a greater and more noticeable impact.
 
-The name has been placed as the last searchable attribute in order to give priority to users looking for a cuisine type in a location while allowing to match the name for those that already know what they are looking for. The impact of the relevancy of this configuration should be futher analyzed using an extensive matrix of queries, which is not included as part of this POC.
+The name has been placed as the last searchable attribute in order to give priority to users looking for a cuisine type in a location while allowing to match the name for those that already know what they are looking for. The initial relevance baseline below includes representative queries. A controlled before-and-after test with location held constant is still needed to measure the impact of attribute order.
 
 Queries where the users select all their critierias using the filters and only type the location have been tested and are a powerful and quick way of browsing restaurants when the user doesn't know the name. Given all the previous points, this kind of search operations behaved as expected immediately.
 
 Overall, the geolocation is the most important factor for default ranking results and after some considerations, it's meaningful for a restaurant search platform. By using an upgraded Algolia plan and by implementing an authentication mechanism, the ranking could be personalized for each user, based on the data about their interactions and bookings.
 
 The typo tolerance is greately increased. Queries like "rom risorante" correctly returns records like "Roma Ristorante" and "A'Roma Ristorante". Even if the query doesn't have the words in order, the matching works on the location and other criterias, giving the possibility to find what they were looking for. The card also shows all the most important info, including the nighborood/city, which makes easy identify which restaurant it is. The full address could be displayed after clicking a record, but it's not part of this POC.
+
+## Relevance Test Matrix
+
+| Test | Query | Visible results | Observation |
+| --- | --- | --- | --- |
+| Exact restaurant name | `Tosca Cafe` | Tosca Cafe | Exact query returns the intended restaurant as the only visible hit. |
+| Partial restaurant name | `Tosca` | Il Toscano - Douglaston; Tosca Cafe; Dolcino Trattoria Toscana | Intended restaurant is present at rank 2. Re-test with geo-ranking held constant before changing ranking settings. |
+| Query rule and geo-ranking interaction | `ner york` | Somers 202 Restaurant and Grill; Tosca Cafe; New Leaf Restaurant & Bar | The dashboard rule that removes `near` also fires for the typo `ner`. Algolia then matches only `york`. `york` is a prefix of the `Yorktown Heights` city value. With the demo's Europe IP location, geo-ranking puts Somers first. With a fixed New York location, New York restaurants lead instead. On this point, a further analysis of the win-lose could be done to decide how to tune it. |
+| Typo tolerance | `rom risorante` | Roma Ristorante (modified geoloc); A'Roma Ristorante | Both expected name variants are recovered. |
+| Typo tolerance | `Tosca Cafee` | Tosca Cafe | A one-character insertion is recovered. |
+| Cuisine discovery | `Italian` | Roma Ristorante (modified geoloc); Al Dente - Foxwoods Resort Casino; Alta Strada Foxwoods | Returned cards are Italian restaurants. The leading record has test-only modified coordinates. |
+| City search | `New York` | Tosca Cafe; New Leaf Restaurant & Bar; Corner Social | The top visible results are in New York. |
+| Natural-language location | `Italian in New York` | Tosca Cafe; Bettolona; Lido | The query returns Italian restaurants in New York. |
+| Empty query / discovery | *(empty)* | Roma Ristorante (modified geoloc); Kanu @ The Whiteface Lodge; The Chateau on the Lake | Results are shown without a query; the test-only geo record affects the leading result. |
+| No results | `1234-no-such-restaurant-1234` | No results | The empty-state message is displayed correctly. |
