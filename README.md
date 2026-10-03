@@ -69,7 +69,7 @@ The typo tolerance is greately increased. Queries like "rom risorante" correctly
 | Test | Query | Visible results | Observation |
 | --- | --- | --- | --- |
 | Exact restaurant name | `Tosca Cafe` | Tosca Cafe | Exact query returns the intended restaurant as the only visible hit. |
-| Partial restaurant name | `Tosca` | Il Toscano - Douglaston; Tosca Cafe; Dolcino Trattoria Toscana | Intended restaurant is present at rank 2. Re-test with geo-ranking held constant before changing ranking settings. |
+| Partial restaurant name | `Tosca` | Il Toscano - Douglaston; Tosca Cafe; Dolcino Trattoria Toscana | Intended restaurant is present at rank 2. |
 | Query rule and geo-ranking interaction | `ner york` | Somers 202 Restaurant and Grill; Tosca Cafe; New Leaf Restaurant & Bar | The dashboard rule that removes `near` also fires for the typo `ner`. Algolia then matches only `york`. `york` is a prefix of the `Yorktown Heights` city value. With the demo's Europe IP location, geo-ranking puts Somers first. With a fixed New York location, New York restaurants lead instead. On this point, a further analysis of the win-lose could be done to decide how to tune it. |
 | Typo tolerance | `rom risorante` | Roma Ristorante (modified geoloc); A'Roma Ristorante | Both expected name variants are recovered. |
 | Typo tolerance | `Tosca Cafee` | Tosca Cafe | A one-character insertion is recovered. |
