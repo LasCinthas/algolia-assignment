@@ -32,6 +32,13 @@
         <div id="selected_container">
           <div id="current-refinements"></div>
           <div id="clear-refinements"></div>
+          <div class="sort-control">
+            <span class="sort-control__label" aria-hidden="true">Sort by</span>
+            <select id="sort-by" class="ais-SortBy-select" aria-label="Sort by">
+              <option value="popularity" selected>Popularity</option>
+              <option value="distance">Distance</option>
+            </select>
+          </div>
         </div>
         <div id="left__container">
           <div id="cuisines__container">
@@ -67,10 +74,13 @@
       		</div>
       		<div class="result__text-container">
       			<h2 class="result__title">{{#helpers.highlight}}{ "attribute": "name" }{{/helpers.highlight}}</h2>
+                <div class="result__meta-row">
             <p class="result__rating">
               <span>{{ratingStars}}</span>
               <span class="result__reviews"> · ({{reviews_count}} reviews)</span>
             </p>
+            {{#hasDistance}}<p class="result__distance">{{distanceKm}} km away</p>{{/hasDistance}}
+                </div>
       			<p class="result__summary">
               {{priceSymbols}} |
               {{#helpers.highlight}}{ "attribute": "food_type" }{{/helpers.highlight}} |

@@ -1,80 +1,235 @@
 # Eugenio Menniti submission - Notes
 
-This POC has a very close look and feeling to the original mock-up. This is intended, as I wanted to provide an enhanced experience rather than a complete revolution and make users feel comfortable and familiar immediately. The functionalities that have been implemented are meant to showcase Algolia core capabilities. Other modifications could be added gradually.
+A restaurant search and discovery POC for the OpenTable scenario, built with Algolia InstantSearch.js.
 
-A live demo is available at https://algolia-assignment-em.netlify.app/
+- **Live demo:** https://algolia-assignment-em.netlify.app/
+- **Algolia Application ID:** `HEXO1NDC48`
+- **Index:** `restaurants` (single index, geo-ranked; the Popularity/Distance selector only changes the distance grouping of each query)
+- **Dashboard access:** provided to Algolia employees.
 
-Status:
 [![Netlify Status](https://api.netlify.com/api/v1/badges/c97171d9-ec9d-4816-9e27-36e81a27c84f/deploy-status)](https://app.netlify.com/projects/algolia-assignment-em/deploys)
 
-The access to the dashboard has been provided to Algolia employees.
+## Contents
 
-Algolia Application ID: HEXO1NDC48, 
-Index name: restaurants
+1. [Approach](#1-approach)
+2. [Features](#2-features)
+3. [Data and scripts](#3-data-and-scripts)
+4. [Algolia configuration](#4-algolia-configuration)
+5. [Settings decisions](#5-settings-decisions)
+6. [Relevance test matrices](#6-relevance-test-matrices)
+7. [Findings and trade-offs](#7-findings-and-trade-offs)
+8. [Limitations and next steps](#8-limitations-and-next-steps)
+9. [Notes and disclosures](#9-notes-and-disclosures)
 
-All Algolia settings have been changed directly on the dashboard for easy and quick experimentation, rather than on the code. As part of this POC, I am not following the principles of configuration as code.
+---
 
-The project extends the existing starting project and adds new things on top of it. Sometimes, changes have been made to support small improvements or resolve technical issues.
+## 1. Approach
 
-Two scripts have been created (located in the scripts folder). One to perform a check of the essentials prerequisites that the datasets should have and another one to merge the datasets based on the ObjectId, select some attributes from the two sets and upload the records to the index.
-These scripts could be extended, especially the one that performs the check, with additional data integrity analysis, numeric values bounds analysis, data format verifications etc. As of now, the assumption is that the data respects all these conditions, including the fact that the dataset doesn't contain the same restaurant in two different objectIDs.
+The POC stays very close to the look and feel of the original mock-up. This is intentional: the goal is an enhanced experience rather than a revolution, so users feel comfortable and familiar immediately. The implemented features are meant to showcase Algolia core capabilities, and other changes can be added gradually.
 
-A js file has been added for purely cosmetic purposes. This file provides a typing animation to the searchbox when used by the index. Since this was not related to the actual logic, I decided to put it in a separate file and keep the index as clean and utilitarian as possible.
-Another js file is used for the geolocation utilities implementation.
+The project extends the starting project. Some changes were made to support small improvements or to resolve technical issues (the initial technical challenges are listed at the end of `index.js`).
 
-Some of the technical challenges encountered are listed at the end of the index.js file. The Parcel related problems could be investigated more, in order to be able to use the same syntax for importing the modules as written in the official Algolia documentation but for this POC I solved the issue by using an adapted importing mechanism, rather than spending time on something not strictly linked to the overall objectives and goals.
+## 2. Features
 
-AI assistance has been used to quickly edit the CSS, support the troubleshooting, syntax review and suggestions while typing. All decisions, choice of the components, structures and architecture are made indipendetly and peer-reviewed with the assistance of the AI with the only purpose of speeding-up the development.
+### Search and results
 
-The dataset doesn't contain restaurants near my location, so I changed the coordinates of one of them in order to validate that the gelocation ranking is working. The location of the user is determined using their IP, and they have the possibility to use the precise location clicking a button. For this POC, there is no control on the distance between the user and the restaurant, and this criteria is only used for raking the results and not for filtering what is shown and what is not shown. The geolocation using the IP acts as primary and fallback option, while the exact position is an optional choice manually made by the user.
+- Search box with a typing placeholder animation.
+- Searchable by cuisine, city, neighborhood and name.
+- Infinite hits with a "Show more" button instead of pagination: users compare options and jump quickly from one to another.
+- Cards show name, cuisine, price,, rating with review count, neighborhood, and the city only when it is not already part of the neighborhood (very common in the dataset).
+- Empty-state message when there are no results.
+- All image URLs in the dataset are invalid. The UI shows a default plate icon; valid URLs would be displayed automatically if the dataset is fixed.
 
-The cuisine type has been configured as a filter, by configuring the related facet. In order to provide a better experience, the frontend ranks the visualization by popularity of the cuisine type. In this way, the users can browse the types with the highest number of options but they keep the possibility to show more options or search manually, providing maximum flexibility while proposing meaningful selectors first.
+### Filters
 
-Since the users might be looking for restaurants in a city different than their actual one, the searchbox allows to search by city. This option, combined with the filtering, doesn't limit the users to browsing only the restaurants from their location and avoid having to load more and more results to find what they are really looking for. As part of the hits visualization, the city is showed when it's not included in the neighborood, which is a very common pattern in the dataset.
+| Filter | Notes |
+| --- | --- |
+| Cuisine | Searchable facet. The frontend orders values by popularity, so the most common cuisines come first while the full list stays searchable. |
+| Price | Same values as the dataset, which are consistent. |
+| Rating | Menu filter, to find restaurants approved by other users. |
+| Dining style | Shown last, to combine with the other filters. |
 
-Basic insights have been enabled. These tracks if the user view the hits and if he loads more results, if the user click on a hit (even if there is no behavior to show the restaurant details or anything else as part of this POC), and interacts with the filters. This data could be used later to understand the filters that are actually used by the users and which one could be removed and replaced, if the queries are returning meaningful results and if the user is quickly finding what he's looking for or not. Further improvements could be made with decisions based on this data. Further development could include a full conversion, for example when the user reserves a table.
+Selected filters are shown as refinements and the user can mix and match them while using queries or as standalone search method.
 
-The dataset contains all invalid images url. As part of this POC, the code fully supports this and shows the default image provided by OpenTable. When a dataset with valid images is provided, the pictures will be correctly displayed.
+### Sort selector
 
-As part of the hits, the decision was about using an infinite scroll with a button rather than a traditional pagination. Since the user might be considering various options and want to quickly jump to one to the other, this seemed the quickest way to provide this feature to them.
+A `Sort by` control in the filters bar changes the distance grouping using `aroundPrecision` sent with each search to the same index, `restaurants`. The two options use the same ranking configuration.
 
-For the filters, in addition to the cuisine type that is one of the most obvious ways the user might want to filter the results, price, rating and dining style have been added as well. Price is an important factor, and this is why it's the second to be showed and it keeps the same values present in the dataset, since they are consistent. In the hit cards, the price is also always shown, with a shorter symbolic visualization. The rating is the third provided filtering, which might be useful for users when they want to find a restaurant and make sure that is approved by other users. Finally, the dining style with all his options is shown at the end, to make sure that the user can combine all the other filtering conditions to find the dining experience he's really looking for. This combination will grant the possibility to the users that already know what they are looking for a quick way to put in place a proper filtering strategy instead of scrolling the results for a long time.
+| Label | `aroundPrecision` | Behavior |
+| --- | --- | --- |
+| Popularity (default) | Ranges: 0-2, 2-5, 5-10, 10-25, 25-100, 100-500, 500-2000 km, and one beyond 2000 km | Closest range first; inside each range the best `quality_score` ranks first. |
+| Distance | 1 m precision | Nearest-first at meter precision; `quality_score` only breaks ties within that precision. |
 
-Phone numbers, precise addresses, payment options, reserve url and postal codes have been omitted for now from the index. These might be useful later when the restaurant details are implemented, but are not considered essential search conditions for this POC implementation.
+The values live in `index.js` (`precisionBySort`, applied through `searchFunction`). In a first version a replica of the index was used without `geo` for Popularity: it showed the best restaurants overall, ignoring the user area. It was removed because the results were probably not relevant and the answer "best nearby, then best farther" with one index worked much better. Ranges list trigger an Algolia pagination defect that `index.js` works around on the client, documented in [limitations](#8-limitations-and-next-steps).
 
-## Some insights about the Algolia settings decisions ##
+### Geolocation and distance
 
-As part of this document and POC, I am not adding screenshots of the tests (including A/B testing) that have been performed, but the decisions and examples are reported in the following points.
+- The user location is first determined from the IP address and used as primary and fallback source. The user can then click a button to use the precise browser location.
+- Distance to each restaurant is shown in km on the card (computed with the `geolib` library), and hidden if no location is available.
+- Distance only affects ranking, in groups chosen by the sort selector (see above). It is not used to filter results from the UI. See [limitations](#8-limitations-and-next-steps) for the automatic radius applied by Algolia.
+- Privacy trade-off: `ipwho.is` receives the user IP for the approximate location, and BigDataCloud receives the coordinates for the place name after GPS permission. If a service or the permission is unavailable, search keeps working.
+- The dataset has no restaurants near my location, so four records were edited on purpose to validate geo-ranking and the ranges.
 
-During the first iteration, the address was included in the index and enabled as a searchable attribute. This created some issues in queries like "New York" where the match was done with the address, that included this work combination. I preferred to remove the address for this reason and get more relevant results.
+  | Record | Cuisine | `quality_score` | Placed |
+  | --- | --- | --- | --- |
+  | Barolo Grill (modified geoloc) | Italian | 958 | about 1.5 km from my location |
+  | Bistecca Restaurant & Bar (modified geoloc) | Italian | 282 | about 0.3 km from my location |
+  | Game Seven Grill (modified geoloc) | Barbecue | 142 | about 5 km from my location |
+  | Roma Ristorante (modified geoloc) | Italian | 715 | about 294 km from my location |
 
-Cuisine type has been selected as the searchable facets while price range and star counts have been disabled. Users are more likely going to use the filters for these two. Dining type hasn't been selected simply because the hit card in this POC is not showing the attribute and there would be no highlighting, creating some confusion. Instead, the users can use the filter. If this attribute is added to the hit card, then it would be meaningful to make it become a searchable attribute.
+  An excellent and a poor restaurant in the same band are ordered by quality, and a very good restaurant in a farther range comes after both.
 
-One very interesting optimization is about the natural language that the users might use. By default a query like "Italian in New York" or "Italian near New York" that are very natural to write were not returning any result. To make this work, a rule has been added in the index that when it detects the keywords "in" or "near" it eliminates them from the query. This way, the query matches Italian on the searchable attribute of the cuisine type and New York in the city and makes the query work with natual language. This set of rules could be extended in the future based on the actual user queries and most common keywords.
+### Insights
 
-Another consideration has been made regarding typos. Queries like "ner york" did not return any data. To improve this, the minimum amount of characters to accept one typo has been set to 3. Further tweaks could be made, including creating a list of synonims to update overtime based on the analytics data.
+Basic Insights events are enabled: hit views, load more, clicks, and filter interactions. This data can later show which filters are used (and which could be replaced), whether queries return meaningful results, and whether users find what they look for. A reservation would be the natural conversion event in a fuller version.
 
-The ranking is working using the default raking criteria with the addition of star_count and reviews_count. At the moment there is no strong evidence that this is having a meaningful impact due to the much higher importance of the geolocation criteria. If the geolocalization doesn't work, then the other criterias have a greater and more noticeable impact.
+### Omitted data from the index
 
-The name has been placed as the last searchable attribute in order to give priority to users looking for a cuisine type in a location while allowing to match the name for those that already know what they are looking for. The initial relevance baseline below includes representative queries. A controlled before-and-after test with location held constant is still needed to measure the impact of attribute order.
+Phone, precise address, payment options, reservation URL and postal code are not indexed. They may be useful in a restaurant detail view but are not essential search criteria for this POC.
 
-Queries where the users select all their critierias using the filters and only type the location have been tested and are a powerful and quick way of browsing restaurants when the user doesn't know the name. Given all the previous points, this kind of search operations behaved as expected immediately.
+## 3. Data and scripts
 
-Overall, the geolocation is the most important factor for default ranking results and after some considerations, it's meaningful for a restaurant search platform. By using an upgraded Algolia plan and by implementing an authentication mechanism, the ranking could be personalized for each user, based on the data about their interactions and bookings.
+Scripts are stored in `scripts/` and run from the project folder:
 
-The typo tolerance is greately increased. Queries like "rom risorante" correctly returns records like "Roma Ristorante" and "A'Roma Ristorante". Even if the query doesn't have the words in order, the matching works on the location and other criterias, giving the possibility to find what they were looking for. The card also shows all the most important info, including the nighborood/city, which makes easy identify which restaurant it is. The full address could be displayed after clicking a record, but it's not part of this POC.
+| Script | Command | Purpose |
+| --- | --- | --- |
+| `analyze-dataset.js` | `node .\scripts\analyze-dataset.js` | Checks IDs, duplicates, join completeness and the inputs used by the quality score. Reports the review details and the score range. |
+| `import-data.js` | `node .\scripts\import-data.js` | Joins `restaurants_list.json` and `restaurants_info.csv` on `objectID`, selects attributes, adds `quality_score`, and writes to the live index. |
+| `quality-score.js` | (module) | Shared scoring formula used by both scripts. |
 
-## Relevance Test Matrix
+Admin credentials are read from the local `.env`. The browser only uses a Search-Only key.
 
-| Test | Query | Visible results | Observation |
+The checks could be extended (numeric bounds, format checks, etc.). For now the assumption is that the data respects them, including that the same restaurant does not appear under two `objectID` values.
+
+### `quality_score`
+
+A single number per restaurant, used as the custom ranking:
+
+```text
+quality_score = round(1000 * (0.7 * (stars / 5) + 0.3 * min(reviews / cap, 1)))
+```
+
+- 70% weight to the star rating, 30% to the number of reviews.
+- `cap` is the 90th percentile of `reviews_count` in the dataset, so a few very reviewed restaurants do not dominate.
+- Purpose: a 5-star restaurant with 8 reviews should not beat a 4.7-star one with 1,500 reviews.
+
+## 4. Algolia configuration
+
+All settings were changed on the dashboard for fast experimentation. This POC does not follow configuration as code principles.
+
+Settings of the `restaurants` index:
+
+| Setting | Value |
+| --- | --- |
+| Searchable attributes (in order) | `food_type`, `city`, `neighborhood`, `name` |
+| Attributes for faceting | `dining_style`, `searchable(food_type)`, `price_range`, `stars_count` |
+| Ranking | typo, geo, words, filters, proximity, attribute, exact, custom |
+| Custom ranking | `desc(quality_score)` |
+| Typo thresholds | 1 typo from 3 chars, 2 typos from 8 chars |
+| Search parameters (frontend) | `aroundLatLng` from the location widget; `aroundPrecision` from the sort selector |
+
+Query rule: when the query contains `in` or `near`, remove those words from the query (this is used for natural language search).
+
+## 5. Settings decisions
+
+Screenshots of the tests (including A/B tests) are not included; decisions and examples are reported below.
+
+- **Address removed from searchable attributes.** In the first iteration the address was searchable, and a query like "New York" matched the address text. Removing it gave more relevant results.
+- **Searchable facet only on cuisine.** Price and rating are more likely used as filters. Dining style is not shown on the card, so there would be no highlighting and it would be confusing. If it is added to the card, it should become searchable.
+- **Natural language rule.** Queries like "Italian in New York" or "Italian near New York" returned nothing by default. The rule removes `in`/`near`, so cuisine matches `food_type` and the location matches `city`. The rule list could grow from real queries.
+- **Typo tolerance.** Queries like "ner york" returned nothing, so the minimum word size for one typo was set to 3. Synonyms could be added later from analytics.
+- **Searchable attribute order.** `name` is last to favor users searching for a cuisine in a place, while still matching users who know the name. `city` was moved before `neighborhood` after a test showed that neighborhoods containing a city name (for example "New York New York Hotel & Casino" in Las Vegas) outranked real New York restaurants, see [findings](#7-findings-and-trade-offs).
+- **Ranking.** `quality_score` replaces the earlier use of `stars_count` and `reviews_count` as custom ranking. Algolia applies custom ranking only after the textual (and geo) criteria, so it breaks ties, it is not blended with them. `geo` comes second, so distance dominates, and the score only separates restaurants in the same distance group. The group size is therefore the main lever on how much quality matters: it is a search parameter (`aroundPrecision`), not an index setting.
+- **One index, two groupings.** An earlier version used a replica without `geo` for Popularity. With `geo` enabled and wide ranges, the same index covers both needs, so the replica was deleted from the dashboard.
+- **Geo as the dominant factor.** For a restaurant search it is meaningful. With authentication and an upgraded plan, ranking could be personalized from interactions and bookings.
+
+## 6. Relevance test matrices
+
+The following results were measured with live queries. Distance uses the current `aroundPrecision: 1`; Popularity uses the current range list. Two fixed locations are used:
+
+- **Test location** `43.92,4.8`: the point around which the four test records were placed (see [Geolocation and distance](#geolocation-and-distance)). My location was roughly 160 km away.
+- **New York** `40.7128,-74.0060`: a place where the dataset is dense, to show the effect of the ranges.
+
+For Popularity the 5th position was read from a 6-result request, because with a plain `hitsPerPage: 5` request the last slot can hold a repeated record (see [limitations](#8-limitations-and-next-steps)). The frontend avoids this with the workaround described there.
+
+### 6.1 Distance (`aroundPrecision: 1`)
+
+| Test | Query | Top results | Observation |
 | --- | --- | --- | --- |
-| Exact restaurant name | `Tosca Cafe` | Tosca Cafe | Exact query returns the intended restaurant as the only visible hit. |
-| Partial restaurant name | `Tosca` | Il Toscano - Douglaston; Tosca Cafe; Dolcino Trattoria Toscana | Intended restaurant is present at rank 2. |
-| Query rule and geo-ranking interaction | `ner york` | Somers 202 Restaurant and Grill; Tosca Cafe; New Leaf Restaurant & Bar | The dashboard rule that removes `near` also fires for the typo `ner`. Algolia then matches only `york`. `york` is a prefix of the `Yorktown Heights` city value. With the demo's Europe IP location, geo-ranking puts Somers first. With a fixed New York location, New York restaurants lead instead. On this point, a further analysis of the win-lose could be done to decide how to tune it. |
-| Typo tolerance | `rom risorante` | Roma Ristorante (modified geoloc); A'Roma Ristorante | Both expected name variants are recovered. |
-| Typo tolerance | `Tosca Cafee` | Tosca Cafe | A one-character insertion is recovered. |
-| Cuisine discovery | `Italian` | Roma Ristorante (modified geoloc); Al Dente - Foxwoods Resort Casino; Alta Strada Foxwoods | Returned cards are Italian restaurants. The leading record has test-only modified coordinates. |
-| City search | `New York` | Tosca Cafe; New Leaf Restaurant & Bar; Corner Social | The top visible results are in New York. |
-| Natural-language location | `Italian in New York` | Tosca Cafe; Bettolona; Lido | The query returns Italian restaurants in New York. |
-| Empty query / discovery | *(empty)* | Roma Ristorante (modified geoloc); Kanu @ The Whiteface Lodge; The Chateau on the Lake | Results are shown without a query; the test-only geo record affects the leading result. |
-| No results | `1234-no-such-restaurant-1234` | No results | The empty-state message is displayed correctly. |
+| Exact name | `Tosca Cafe` | Tosca Cafe | Only hit. |
+| Partial name | `Tosca` | Il Toscano - Douglaston; Tosca Cafe; Dolcino Trattoria Toscana; Scottadito Osteria Toscana; Via Toscana | 24 hits; the intended restaurant is at rank 2. From New York: Dolcino Trattoria Toscana; Scottadito Osteria Toscana; Tosca Cafe; Il Toscano - Douglaston; Via Toscana. |
+| Rule and geo | `ner york` | Somers 202 Restaurant and Grill; Tosca Cafe; New Leaf Restaurant & Bar; Red Rooster Harlem; Corner Social | 717 hits. The explanation is below the table. From New York: Woolworth Tower Kitchen; Dark Horse; Benares - Tribeca; Ecco; Sazon. |
+| Typo | `rom risorante` | Roma Ristorante (modified geoloc); A'Roma Ristorante | Both variants recovered. From New York, A'Roma Ristorante leads. |
+| Typo | `Tosca Cafee` | Tosca Cafe | One-character insertion recovered. |
+| Cuisine | `Italian` | Bistecca Restaurant & Bar (modified geoloc); Barolo Grill (modified geoloc); Roma Ristorante (modified geoloc); Al Dente - Foxwoods Resort Casino; Alta Strada Foxwoods | 854 hits (874 from New York, the aroundRadius has a default limit that I haven't modified). Bistecca (0.3 km, score 282) is closer than Barolo Grill (1.5 km, score 958), so it ranks first. From New York: Ecco; Gigino Trattoria; Roc Restaurant; Max - Tribeca; Giardino D'Oro. |
+| City | `New York` | Tosca Cafe; New Leaf Restaurant & Bar; Red Rooster Harlem; Corner Social; Chez Lucienne | 697 hits; all top results are in New York. From New York: Woolworth Tower Kitchen; Dark Horse; Benares - Tribeca; Ecco; Sazon. |
+| Natural language | `Italian in New York` | Tosca Cafe; Bettolona; Lido; Isola on Columbus; Cavatappo Grill | 151 hits; Italian restaurants in New York. From New York: Ecco; Gigino Trattoria; Roc Restaurant; Max - Tribeca; Giardino D'Oro. |
+| Empty query | *(empty)* | Bistecca Restaurant & Bar (modified geoloc); Barolo Grill (modified geoloc); Game Seven Grill (modified geoloc); Roma Ristorante (modified geoloc); Kanu @ The Whiteface Lodge | 4,812 hits (see the radius limitation). Nearest first. From New York: Woolworth Tower Kitchen; Dark Horse; Benares - Tribeca; Ecco; Sazon. |
+| No results | `1234-no-such-restaurant-1234` | none | The empty state is displayed. |
+
+**`ner york` explanation.** The rule removes `near` and also fires on the typo `ner`, so Algolia only searches `york`. `york` matches the prefix of `Yorktown Heights` and `Yorkville`. With a European location, geo places Somers (Yorktown Heights) first; with a New York location, New York restaurants lead. This is the effect of the rule, not of typo correction.
+
+### 6.2 Popularity (bands: 0-2, 2-5, 5-10, 10-25, 25-100, 100-500, 500-2000 km, beyond 2000 km)
+
+From the test location every New York restaurant (about 6,200 km away) falls in the last band, so quality and textual criteria decide among them. The hit counts are the same as in 6.1.
+
+| Test | Query | Top results | Observation |
+| --- | --- | --- | --- |
+| Exact name | `Tosca Cafe` | Tosca Cafe | Same as Distance. |
+| Partial name | `Tosca` | Toscanini; Tosca Cafe; Via Toscana; Il Toscano - Douglaston; Scottadito Osteria Toscana | 24 hits. All in the farthest band, so textual criteria come first: `Toscanini` and `Tosca Cafe` start with the word in `name`; the others have it later. |
+| Rule | `ner york` | Somers 202 Restaurant and Grill; Le Bernardin; Marea; Marc Forgione; The NoMad | Same rule effect (`york` only). `york` is the first word of the city `Yorktown Heights`, but the second word of `New York`, so Somers leads; the New York restaurants follow by `quality_score` (scores 930-958). |
+| Typo | `rom risorante` | Roma Ristorante (modified geoloc); A'Roma Ristorante | Both recovered; the test record is closer. From New York, Distance puts A'Roma first (closer) while Popularity keeps the quality order (715 vs 712). |
+| Typo | `Tosca Cafee` | Tosca Cafe | Same as Distance. |
+| Cuisine | `Italian` | Barolo Grill (modified geoloc); Bistecca Restaurant & Bar (modified geoloc); Roma Ristorante (modified geoloc); Vivace Restaurant; Iozzo's Garden of Italy | 854 hits. The two test records in the first band (Bistecca has score 282) precede Roma (100-500 km band, 715), which precedes the best Italian restaurants of the farthest band (958). |
+| City | `New York` | Le Bernardin; Marea; Marc Forgione; The NoMad; Beauty and Essex | 697 hits; all in New York, ordered by quality (scores 930-958). Before moving `city` ahead of `neighborhood`, two non-New York records led (see the findings). |
+| Natural language | `Italian in New York` | Marea; Peasant; Crispo; Lattanzi; Lincoln Ristorante | 151 hits, all in New York, ordered by quality (scores 916-944). |
+| Empty query | *(empty)* | Barolo Grill (modified geoloc); Bistecca Restaurant & Bar (modified geoloc); Game Seven Grill (modified geoloc); Roma Ristorante (modified geoloc); Russell's Steaks, Chops, and More | 4,812 hits (see the radius limitation). One test record per band (0-2, 0-2, 5-10 and 100-500 km), then the best restaurants of the farthest band (scores 972-986). |
+| No results | `1234-no-such-restaurant-1234` | none | The empty state is displayed. |
+
+From New York, the two options now differ even in this dense area: Distance favors the nearest results, while Popularity orders by quality inside its first 0-2 km band. For `Italian`, Distance returns Ecco; Gigino Trattoria; Roc Restaurant, while Popularity returns Peasant; Osteria Morini; Il Buco Alimentari & Vineria.
+
+### 6.3 Same query, two sort options (test location)
+
+| Query | Distance | Popularity |
+| --- | --- | --- |
+| `Italian` | Bistecca, Barolo Grill, Roma Ristorante, then Foxwoods restaurants | Barolo Grill, Bistecca, Roma Ristorante, then Vivace and Iozzo's Garden of Italy |
+| `Italian in New York` | Tosca Cafe, Bettolona, Lido | Marea, Peasant, Crispo |
+| `New York` | Tosca Cafe, New Leaf, Red Rooster Harlem | Le Bernardin, Marea, Marc Forgione |
+| *(empty)* | Bistecca, Barolo Grill, Game Seven Grill, Roma Ristorante, Kanu | Barolo Grill, Bistecca, Game Seven Grill, Roma Ristorante, Russell's Steaks |
+
+The options differ in both dense and sparse areas: Distance prioritizes proximity at meter precision; Popularity prioritizes quality within progressively wider distance bands.
+
+## 7. Findings and trade-offs
+
+- **Custom ranking is a tie-breaker.** Ties on textual and geo criteria are resolved by `quality_score`. The current Distance option uses 1 m precision, so geo distance dominates except for ties at that precision; Popularity uses wider bands, so quality orders restaurants within each band.
+- **Attribute order (before and after).** This was measured when Popularity was still a replica without `geo`, where the order is purely textual and by quality. With `neighborhood` before `city`, the query `New York` returned `Gallagher's Steakhouse` (Las Vegas, neighborhood "New York New York Hotel & Casino") and `Son Cubano - New Jersey` (West New York) first: ranking info showed the match in `neighborhood` at position 1000 and in `city` at 2000. After putting `city` first, the same query returns only New York restaurants (Le Bernardin, Marea, Marc Forgione), and `Italian in New York` is unchanged. The side effect appears on `ner york`: it now starts with `Somers 202 Restaurant and Grill` instead of `Delizia 92`, because `york` is the first word of `Yorktown Heights`. With the former 2 km Distance setting, results did not change for any query of the matrix at that point.
+- **Distance precision.** Earlier tests from Manhattan showed that wider groups let `quality_score` reorder restaurants several kilometers apart. With `aroundPrecision: 1`, the test location's `Italian` results put Bistecca (0.3 km, score 282) ahead of Barolo Grill (1.5 km, score 958); from New York, Distance returns Ecco, Gigino Trattoria and Roc Restaurant, while Popularity returns Peasant, Osteria Morini and Il Buco.
+- **Distance vs popularity trade-off.** Distance suits "restaurants near me" intent; Popularity suits "the best around here" and exploring. Distance ranks by proximity at meter precision; Popularity ranks by quality within its distance bands. Popularity is the default because it keeps quality visible when exploring a sparse area (6.3). The bands (2/5/10/25/100/500/2000 km) are a judgment call, not measured optima.
+- **Rule trade-off.** The `in`/`near` rule makes natural queries work but also fires on typos like `ner`. Disabling alternatives on the condition would avoid this, at the cost of no longer catching typos of `near`.
+- **Typo tolerance.** Queries like `rom risorante` and `Tosca Cafee` recover the intended names, even with out-of-order words, because matching works on all searchable attributes. The card shows neighborhood and city so the user can identify the restaurant easily.
+- **Score design.** The review cap makes the score robust to outliers, but the weights (70/30) and the 90th-percentile cap are choices, not measured optima. They should be validated with click and conversion data from Insights.
+
+## 8. Limitations and next steps
+
+- **Hidden radius.** No `aroundRadius` is set, so Algolia uses an automatic radius. From the test location the empty query returns 4,812 of 5,000 records (automatic radius of about 10,800 km); from New York it returns 5,000; with `aroundRadius: "all"` it would return 5,000 everywhere. The filter applies to both sort options. Distance is therefore not strictly "ranking only"; setting `aroundRadius: "all"` in the `configure` widget would remove the effect.
+- **Test records.** The four records listed in [Geolocation and distance](#geolocation-and-distance) still have edited coordinates and lead many results near the test location.
+- **Settings are not versioned.** Dashboard changes are not in code. A configuration script would make them reproducible.
+- **No personalization.** Requires an Algolia upgraded plan and authentication for the users.
+- **Repeated hit with band lists (worked around, cause not understood).** When `aroundPrecision` is a list of two or more ranges, one record is repeated at the end of every page and one record per page is skipped. Measured with the same query and parameters on the live index, 4 pages of 20 hits, only `aroundPrecision` changed:
+
+  | `aroundPrecision` | Unique hits in 80 | Repeated |
+  | --- | --- | --- |
+  | `2000` or `2000000` (single number) | 80 | none |
+  | list of 1 range | 80 | none |
+  | list of 2 or more ranges (also 2 simple ranges) | 77 | one record x4 |
+
+  Examples: `Curry Kitchen` for `New York` from the test location or the IP location, `Bistecca Restaurant & Bar (modified geoloc)` for `Italian` from Los Angeles. With 5 hits per page the last slot is the repeated record (`Le Bernardin; Marea; Marc Forgione; The NoMad; Curry Kitchen`, then `Riverpark; Cookshop; Tamarind; Print; Curry Kitchen`), so Beauty and Essex, which a 6-hit request returns right after The NoMad, is skipped. The repeated record is not the nearest or the farthest of the result set (Curry Kitchen is 436th of 697 by distance). 
+
+  What was established: the defect reproduces with raw HTTP requests, so it is not caused by the frontend or InstantSearch; it does not depend on `aroundRadius`, `distinct`, typo tolerance, or on using `page` or `offset`/`length`; it disappears when all hits are requested at once (`hitsPerPage: 1000`), so it only affects paginated requests; it does not depend on the ranking or `customRanking` settings (checked on a temporary copy of the index). The repeated record is usually the one with the lowest `quality_score` and stars of the result set, but not in every case (from New York it did not appear).
+
+  Workaround, in `index.js`: for requests whose `aroundPrecision` is a list, the search client asks for `offset = page * 20` and `length = 21` instead of `page` and `hitsPerPage`, then drops the last hit and sets `page`, `hitsPerPage` and `nbPages` in the response so "Show more restaurants" keeps working. Checked on 80 page checks against the unpaginated result (`hitsPerPage: 1000`): 0 mismatches, against 38 with plain paging. Checked in the UI: `New York` with Popularity and three clicks on "Show more restaurants" gave 80 distinct cards in exactly the unpaginated order; `Tosca` (24 hits) disabled the button on the second page; Distance, refinements and cuisine search still work. Limits: the code assumes the default page size of 20 when `hitsPerPage` is not sent, and it adds one hit to each request. It is a mitigation for an unexplained behavior.
+
+## 9. Additional notes and disclosures
+
+- AI assistance was used to quickly edit CSS, support troubleshooting, syntax review and suggestions while typing, and to help with analysis and documentation. All decisions, components, structures and architecture were chosen independently and peer-reviewed with the AI only to speed up development.
+- Parcel-related problems could be investigated further to use the import syntax of the official Algolia documentation. For this POC an adapted importing mechanism was used instead.

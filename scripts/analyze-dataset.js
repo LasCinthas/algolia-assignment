@@ -5,6 +5,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { parse } = require("csv-parse/sync");
+const { calculateQualityScore, getReviewCountCap } = require("./quality-score");
 
 // load dataset files
 const restaurants = require("../dataset/restaurants_list.json");
@@ -15,6 +16,33 @@ const details = parse(
   ),
   { columns: true, delimiter: ";", bom: true, skip_empty_lines: true }
 );
+// ratings between 0 and 5 and review counts of 0 or more are needed to calculate the quality score
+const hasValidScoringInputs =
+  details.length > 0 &&
+  // get the stars count and review count for each detail and validate them
+  details.every((detail) => {
+    const starsCount = Number(detail.stars_count);
+    const reviewsCount = Number(detail.reviews_count);
+    return (
+      Number.isFinite(starsCount) &&
+      starsCount >= 0 &&
+      starsCount <= 5 &&
+      Number.isFinite(reviewsCount) &&
+      reviewsCount >= 0
+    );
+  });
+// calculate the 90th percentile review count cap if the scoring inputs are valid
+const reviewCountCap = hasValidScoringInputs ? getReviewCountCap(details) : null;
+// quality score of every restaurant, only to report its range
+const qualityScores = hasValidScoringInputs
+  ? details.map((detail) =>
+      calculateQualityScore(
+        Number(detail.stars_count),
+        Number(detail.reviews_count),
+        reviewCountCap
+      )
+    )
+  : [];
 
 // extract the unique IDs from both datasets
 const restaurantIds = restaurants.map((restaurant) =>
@@ -39,7 +67,11 @@ const joinIsComplete =
   matchedIds.length === detailIds.length;
 
 // determine overall dataset integrity
-const passed = !hasMissingIds && !hasDuplicates && joinIsComplete;
+const passed =
+  !hasMissingIds &&
+  !hasDuplicates &&
+  joinIsComplete &&
+  hasValidScoringInputs;
 
 // report dataset analysis results
 console.log(`JSON records: ${restaurants.length}`);
@@ -48,4 +80,13 @@ console.log(`Matched IDs: ${matchedIds.length}`);
 console.log(`IDs present: ${!hasMissingIds}`);
 console.log(`IDs unique: ${!hasDuplicates}`);
 console.log(`Join complete: ${joinIsComplete}`);
+console.log(`Rating and review values valid: ${hasValidScoringInputs}`);
+console.log(`Review-count cap (90th percentile): ${reviewCountCap ?? "unavailable"}`);
+console.log(
+  `Quality score range: ${
+    qualityScores.length > 0
+      ? `${Math.min(...qualityScores)}-${Math.max(...qualityScores)}`
+      : "unavailable"
+  }`
+);
 console.log(`Result: ${passed ? "PASS" : "FAIL"}`);

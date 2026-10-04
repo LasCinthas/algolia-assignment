@@ -9,6 +9,7 @@
     "algoliasearch-helper": "3.15.0",
     "csv-parse": "^7.0.3",
     "dotenv": "^18.0.5",
+    "geolib": "^3.3.14",
     "instantsearch.js": "^4.118.1"
   },
   "devDependencies": {

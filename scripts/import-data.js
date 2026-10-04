@@ -7,6 +7,7 @@ const path = require("node:path");
 const { parse } = require("csv-parse/sync");
 const { algoliasearch } = require("algoliasearch");
 const dotenv = require("dotenv");
+const { calculateQualityScore, getReviewCountCap } = require("./quality-score");
 
 // load environment variables from the .env file
 dotenv.config({ path: path.join(__dirname, "../.env") });
@@ -20,6 +21,8 @@ const details = parse(
   ),
   { columns: true, delimiter: ";", bom: true, skip_empty_lines: true }
 );
+// cap used to calculate the quality score of every restaurant
+const reviewCountCap = getReviewCountCap(details);
 
 // create a map of details by their objectID for quick lookup
 const detailsById = new Map(
@@ -36,6 +39,19 @@ const records = restaurants.map((restaurant) => {
     throw new Error(`No CSV details found for restaurant ${objectID}.`);
   }
 
+  // the CSV values are text: convert them and stop the import if they are not valid
+  const starsCount = Number(detail.stars_count);
+  const reviewsCount = Number(detail.reviews_count);
+  if (
+    !Number.isFinite(starsCount) ||
+    starsCount < 0 ||
+    starsCount > 5 ||
+    !Number.isFinite(reviewsCount) ||
+    reviewsCount < 0
+  ) {
+    throw new Error(`Invalid rating or review count for restaurant ${objectID}.`);
+  }
+
   // merge the restaurant and detail information into a single record
   return {
     objectID,
@@ -47,8 +63,10 @@ const records = restaurants.map((restaurant) => {
     food_type: detail.food_type,
     neighborhood: detail.neighborhood,
     price_range: detail.price_range,
-    stars_count: Number(detail.stars_count),
-    reviews_count: Number(detail.reviews_count),
+    stars_count: starsCount,
+    reviews_count: reviewsCount,
+    // calculated here, attribute not in the dataset: used as custom ranking
+    quality_score: calculateQualityScore(starsCount, reviewsCount, reviewCountCap),
     dining_style: detail.dining_style,
   };
 });

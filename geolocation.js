@@ -3,13 +3,15 @@
 import configure from "instantsearch.js/es/widgets/configure/configure.js";
 
 // function to set up geolocation for the search instance
-export function setupGeolocation(search) {
+export function setupGeolocation(search, onLocationChange) {
   let locationWidget;
   const statusEl = document.querySelector("#geolocation-status");
   const exactButton = document.querySelector("#geolocation-button");
 
   // function to set the location for the search instance and status text
   const setLocation = (latLng, statusText) => {
+    const [latitude, longitude] = latLng.split(",").map(Number);
+    onLocationChange?.({ latitude, longitude });
     // remove the previous location widget if it exists
     if (locationWidget) search.removeWidgets([locationWidget]);
     // create or update the widget and text
@@ -26,7 +28,7 @@ export function setupGeolocation(search) {
       if (!success) throw new Error("IP lookup failed");
       setLocation(
         `${latitude},${longitude}`,
-        `Showing the closest restaurants to ${city}, ${region} (based on your IP)`
+        `It looks like you are in ${city}, ${region} (based on your IP)`
       );
     } catch {
       statusEl.textContent = "Location not available";
@@ -59,7 +61,7 @@ export function setupGeolocation(search) {
             place.countryName,
           ].filter(Boolean).join(", ");
           statusEl.textContent = placeName
-            ? `Showing the closest restaurants to ${placeName} (exact location)`
+            ? `It looks like you are in ${placeName} (exact location)`
             : "Exact location detected; place name unavailable";
         } catch {
           statusEl.textContent = "Exact location detected; place name unavailable";

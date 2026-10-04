@@ -16464,7 +16464,7 @@
     },
     {
         "objectID": 105403,
-        "name": "Game Seven Grill",
+        "name": "Game Seven Grill (modified geoloc)",
         "address": "201 South 4th Street",
         "area": "Phoenix / Arizona",
         "city": "Phoenix",
@@ -16483,8 +16483,8 @@
         "reserve_url": "http://www.opentable.com/single.aspx?rid=105403",
         "state": "AZ",
         "_geoloc": {
-            "lat": 33.446289,
-            "lng": -112.06867
+            "lat": 43.965,
+            "lng": 4.8
         }
     },
     {
@@ -70848,7 +70848,7 @@
     },
     {
         "objectID": 53158,
-        "name": "Barolo Grill",
+        "name": "Barolo Grill (modified geoloc)",
         "address": "3030 E 6th Ave",
         "area": "Denver / Colorado",
         "city": "Denver",
@@ -70868,8 +70868,8 @@
         "reserve_url": "http://www.opentable.com/single.aspx?rid=53158",
         "state": "CO",
         "_geoloc": {
-            "lat": 39.725429,
-            "lng": -104.951339
+            "lat": 43.9335,
+            "lng": 4.8
         }
     },
     {
@@ -118456,7 +118456,7 @@
     },
     {
         "objectID": 92323,
-        "name": "Bistecca Restaurant & Bar",
+        "name": "Bistecca Restaurant & Bar (modified geoloc)",
         "address": "909 Parsippany Blvd.",
         "area": "New York / Tri-State Area",
         "city": "Parsippany",
@@ -118476,8 +118476,8 @@
         "reserve_url": "http://www.opentable.com/single.aspx?rid=92323",
         "state": "NJ",
         "_geoloc": {
-            "lat": 40.873838,
-            "lng": -74.422104
+            "lat": 43.923,
+            "lng": 4.8
         }
     },
     {
