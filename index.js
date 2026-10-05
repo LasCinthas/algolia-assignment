@@ -34,7 +34,7 @@ const precisionBySort = {
   ],
 };
 
-// sort selector: its value chooses which distance grouping is sent with the search
+// initialise the sort selector element used to determine the sorting of search results
 const sortSelect = document.querySelector("#sort-by");
 
 // symbols for price ranges visualized in the hits 
@@ -44,7 +44,7 @@ const priceSymbols = {
   "$50 and over": "$$$",
 };
 
-// user position, filled in by the geolocation module
+// user position, filled by setupGeolocation
 let userCoordinates;
 
 // distance in km between the user and a restaurant, null if one of the positions is missing or invalid
@@ -56,9 +56,12 @@ const getDistanceInKm = (restaurantCoordinates) => {
     latitude: Number(restaurantCoordinates.lat),
     longitude: Number(restaurantCoordinates.lng),
   };
+  // check if the restaurant coordinates are valid numbers
   if (!Number.isFinite(restaurantPoint.latitude) || !Number.isFinite(restaurantPoint.longitude)) return null;
 
+  // calling getDistance from geolib to compute the distance in meters between the user and the restaurant
   const distanceInMeters = getDistance(userCoordinates, restaurantPoint);
+  // convert the distance from meters to kilometers and round to one decimal place
   return (distanceInMeters / 1000).toFixed(1);
 };
 
@@ -66,14 +69,17 @@ const getDistanceInKm = (restaurantCoordinates) => {
 const searchClient = algoliasearch(appID, apiKey);
 
 // With an aroundPrecision list Algolia puts one wrong hit in the last slot of each page: ask for one extra hit by offset and drop it
-// 20 is the Algolia default, this app never sets hitsPerPage
+// 20 is the Algolia default
 const defaultPageSize = 20;
+// custom search function to handle aroundPrecision and pagination adjustments. bind is used to preserve the original context of the search client
 const searchWithPrecisionList = searchClient.search.bind(searchClient);
+// override the default search method. requests and options are passed from InstantSearch. Requests is expected to be an array of search requests
 searchClient.search = async (requests, options) => {
-  // InstantSearch sends an array, the cuisine count below sends { requests }: leave the latter alone
+  // if the requests parameter is not an array, fall back to the default search function
   if (!Array.isArray(requests)) return searchWithPrecisionList(requests, options);
 
   // only hit requests with a band list are rewritten, not facet searches or count-only requests
+  // type and params are sent by InstantSearch in each search request object
   const isAffected = ({ type, params }) => type !== "facet" && Array.isArray(params?.aroundPrecision) && params.hitsPerPage !== 0;
   const response = await searchWithPrecisionList(
     requests.map((request) => {
@@ -95,14 +101,24 @@ searchClient.search = async (requests, options) => {
   return response;
 };
 
-// checking "Popular Cuisines" to order by popularity (hitsPerPage 0: only the facet counts are needed)
+// checking "Popular Cuisines" to order the filters
 let cuisineCount = {};
 searchClient
+  // hitsPerPage is set to 0 because we only need the facet counts, not the actual hits 
   .search({ requests: [{ indexName, hitsPerPage: 0, facets: ["food_type"] }] })
   .then(({ results }) => {
+    // store the facet counts for the filter
     cuisineCount = results[0].facets.food_type;
+    /*
+    {
+      Italian: 1200,
+      American: 800,
+      ...
+    }
+    */
   });
 
+// sort by popularity based on the stored facet counts and resolve to 0 if there is no value
 const byPopularity = (a, b) =>
   (cuisineCount[b.name] ?? 0) - (cuisineCount[a.name] ?? 0);
 
@@ -111,9 +127,10 @@ const search = instantsearch({
   indexName,
   searchClient,
   insights: true,
-  // runs before every search: adds the distance grouping of the selected sort
+  // callback that runs at every search invoked by InstantSearch and adds the distance grouping of the selected sort
+  // the helper is passed by InstantSearch
   searchFunction(helper) {
-    // setState instead of setQueryParameter: the latter resets the page and would break "Show more"
+    // get the current helper state, update the aroundPrecisionParameter, set it and trigger the search
     helper.setState(helper.state.setQueryParameter("aroundPrecision", precisionBySort[sortSelect.value])).search();
   },
 });
@@ -134,7 +151,7 @@ search.addWidgets([
             empty: document.querySelector("#no-results-template").innerHTML,
             showMoreText: "Show more restaurants"
         },
-        // add the values used by the result template: stars, price symbols, city and distance
+        // transform and add the values used by the result template: stars, price symbols, city and distance
         transformItems: (items) =>
             items.map((item) => {
                 const stars = Math.round(Number(item.stars_count));
@@ -205,11 +222,11 @@ search.on("render", () => {
 });
 
 // set up geolocation, start the search and initialize the searchbox placeholder animation
-setupGeolocation(search, (coordinates) => {
+setupGeolocation(search, (coordinates) => { // coordinates are passed by the geolocation setup function (callback)
   userCoordinates = coordinates;
 }).then(() => {
   search.start();
-  // a new sort starts again from the first page
+  // reset to the first page when the sort option changes
   sortSelect.addEventListener("change", () => search.helper.setPage(0).search());
   startPlaceholderAnimation(document.querySelector("#searchbox .ais-SearchBox-input"));
 });

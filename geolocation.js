@@ -11,6 +11,7 @@ export function setupGeolocation(search, onLocationChange) {
   // function to set the location for the search instance and status text
   const setLocation = (latLng, statusText) => {
     const [latitude, longitude] = latLng.split(",").map(Number);
+    // call the location change callback if provided
     onLocationChange?.({ latitude, longitude });
     // remove the previous location widget if it exists
     if (locationWidget) search.removeWidgets([locationWidget]);
