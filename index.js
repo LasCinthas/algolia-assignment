@@ -68,26 +68,38 @@ const getDistanceInKm = (restaurantCoordinates) => {
 // initialize the search client
 const searchClient = algoliasearch(appID, apiKey);
 
-// With an aroundPrecision list Algolia puts one wrong hit in the last slot of each page: ask for one extra hit by offset and drop it
+/*
+Workaround for an Algolia pagination defect.
+When aroundPrecision is a list (the Popularity sort), paginated requests return a repeated hit at the end of each page and skip another one.
+The defect does not appear when all hits are requested at once, so this wrapper changes how the pages are requested:
+1. it intercepts every search sent by InstantSearch through the search client
+2. for the affected requests only, it replaces page/hitsPerPage with offset/length and asks for one extra hit
+3. when the response arrives (below), it drops the extra hit and restores the pagination fields that InstantSearch needs
+The other requests are sent unchanged.
+*/
 // 20 is the Algolia default
 const defaultPageSize = 20;
-// custom search function to handle aroundPrecision and pagination adjustments. bind is used to preserve the original context of the search client
+// the original search is saved here because searchClient.search is replaced just below, and the wrapper still needs to call the original
 const searchWithPrecisionList = searchClient.search.bind(searchClient);
 // override the default search method. requests and options are passed from InstantSearch. Requests is expected to be an array of search requests
 searchClient.search = async (requests, options) => {
   // if the requests parameter is not an array, fall back to the default search function
   if (!Array.isArray(requests)) return searchWithPrecisionList(requests, options);
 
-  // only hit requests with a band list are rewritten, not facet searches or count-only requests
-  // type and params are sent by InstantSearch in each search request object
+  // a request is affected when it is not a facet search, aroundPrecision is a list and it asks for hits (hitsPerPage 0 only asks for counts)
   const isAffected = ({ type, params }) => type !== "facet" && Array.isArray(params?.aroundPrecision) && params.hitsPerPage !== 0;
+  // the original search is called with the rewritten requests: one map call goes through every request of the batch
   const response = await searchWithPrecisionList(
     requests.map((request) => {
+      // unaffected requests are sent as they are
       if (!isAffected(request)) return request;
       // page N becomes an offset, with one extra hit to throw away
+      // page and hitsPerPage are taken out of the params (page defaults to 0 and hitsPerPage to 20); the other params are kept in ...params
       const { page = 0, hitsPerPage = defaultPageSize, ...params } = request.params;
+      // offset is the position of the first hit to return, length is how many hits: e.g. page 2 with 20 hits gives offset 40 and length 21
       return { ...request, params: { ...params, offset: page * hitsPerPage, length: hitsPerPage + 1 } };
     }),
+    // the options are forwarded unchanged
     options
   );
 
