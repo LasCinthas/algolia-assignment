@@ -4,7 +4,7 @@ A restaurant search and discovery POC for the OpenTable scenario, built with Alg
 
 - **Live demo:** https://algolia-assignment-em.netlify.app/
 - **Algolia Application ID:** `HEXO1NDC48`
-- **Index:** `restaurants` (single index, geo-ranked; the Popularity/Distance selector only changes the distance grouping of each query)
+- **Index:** `restaurants`
 - **Dashboard access:** provided to Algolia employees.
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/c97171d9-ec9d-4816-9e27-36e81a27c84f/deploy-status)](https://app.netlify.com/projects/algolia-assignment-em/deploys)
