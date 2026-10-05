@@ -55,10 +55,12 @@ export function setupGeolocation(search, onLocationChange) {
           if (!response.ok) throw new Error("Reverse geocoding failed");
           const place = await response.json();
           const placeName = [
+            // use the locality (neighborhood) if available, otherwise fall back to the city
             place.locality || place.city,
             // include the principal subdivision (state/province) in the place name
             place.principalSubdivision,
             place.countryName,
+            // here filter out missing elements (falsy) and join the remaining parts with commas
           ].filter(Boolean).join(", ");
           statusEl.textContent = placeName
             ? `It looks like you are in ${placeName} (exact location)`
@@ -67,12 +69,13 @@ export function setupGeolocation(search, onLocationChange) {
           statusEl.textContent = "Exact location detected; place name unavailable";
         }
       },
+      // error callback for when exact location is not available
       () => {
         statusEl.textContent = "Exact location not available";
       }
     );
   });
-
+  // hide the exact location button if geolocation is not supported
   if (!navigator.geolocation) exactButton.hidden = true;
   return useIpLocation();
 }

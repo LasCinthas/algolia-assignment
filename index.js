@@ -19,7 +19,6 @@ const appID = "HEXO1NDC48";
 const apiKey = "96bcca129ac58bee73a782b3251c2b51";
 const indexName = "restaurants";
 
-// distance groups in meters (same index, same ranking): inside a group quality_score decides the order
 // Distance: 1 m steps; Popularity: 0-2, 2-5, 5-10, 10-25, 25-100, 100-500, 500-2000 km and one group beyond 2000 km
 const precisionBySort = {
   distance: 1,

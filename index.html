@@ -73,13 +73,15 @@
             <img class="result__image" src="{{image_url}}" alt="{{name}}" />
       		</div>
       		<div class="result__text-container">
+            <!-- For highlighted text, using the older Hogan.js method in order to keep the template approach of the starting project. This doesn't work with InstantSearch v5 -->
       			<h2 class="result__title">{{#helpers.highlight}}{ "attribute": "name" }{{/helpers.highlight}}</h2>
                 <div class="result__meta-row">
-            <p class="result__rating">
-              <span>{{ratingStars}}</span>
-              <span class="result__reviews"> · ({{reviews_count}} reviews)</span>
-            </p>
-            {{#hasDistance}}<p class="result__distance">{{distanceKm}} km away</p>{{/hasDistance}}
+                  <p class="result__rating">
+                    <span>{{ratingStars}}</span>
+                    <span class="result__reviews"> · ({{reviews_count}} reviews)</span>
+                  </p>
+                  <!-- Distance information, if available -->
+                  {{#hasDistance}}<p class="result__distance">{{distanceKm}} km away</p>{{/hasDistance}}
                 </div>
       			<p class="result__summary">
               {{priceSymbols}} |
