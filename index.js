@@ -138,7 +138,15 @@ const byPopularity = (a, b) =>
 const search = instantsearch({
   indexName,
   searchClient,
-  insights: true,
+  insights: {
+    // Insights filter-click events only support facet values, not numeric ranges. Temporary workaround for the 422 error
+    onEvent(event, insightsClient) {
+      // Ignore if the event is a rating menu filter-click
+      if (event.widgetType === "ais.ratingMenu" && event.insightsMethod === "clickedFilters") return;
+      // Forward other events to the insights client if available
+      if (event.insightsMethod && insightsClient) insightsClient(event.insightsMethod, event.payload);
+    },
+  },
   // callback that runs at every search invoked by InstantSearch and adds the distance grouping of the selected sort
   // the helper is passed by InstantSearch
   searchFunction(helper) {

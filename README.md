@@ -81,7 +81,7 @@ The values live in `index.js` (`precisionBySort`, applied through `searchFunctio
 
 ### Insights
 
-Basic Insights events are enabled: hit views, load more, clicks, and filter interactions. This data can later show which filters are used (and which could be replaced), whether queries return meaningful results, and whether users find what they look for. A reservation would be the natural conversion event in a fuller version.
+Insights events are enabled for hit views, load more, and supported filter interactions. The rating filter still works, but its click event is not sent: the rating menu uses a numeric range (`stars_count >= n`), while Insights filter-click events support facet values (`attribute:value`). The event is skipped to avoid a rejected 422 response. These events can later show which filters are used (and which could be replaced), whether queries return meaningful results, and whether users find what they look for. A reservation would be the natural conversion event in a fuller version.
 
 ### Omitted data from the index
 
